@@ -1,38 +1,67 @@
-<settings xmlns="https://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="https://maven.apache.org/SETTINGS/1.0.0
-                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
 
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <!-- ========================================================= -->
+  <!-- Plugin Groups -->
+  <!-- ========================================================= -->
+  <!--
+    Added Sonar Maven plugin group to allow:
+    mvn sonar:sonar
+  -->
+  <pluginGroups>
+    <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+  </pluginGroups>
+
+  <!-- ========================================================= -->
+  <!-- Proxies (keep commented unless required) -->
+  <!-- ========================================================= -->
+  <proxies>
+    <!--
+    <proxy>
+      <id>corp-proxy</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>proxy.company.com</host>
+      <port>8080</port>
+      <nonProxyHosts>localhost|127.0.0.1</nonProxyHosts>
+    </proxy>
+    -->
+  </proxies>
+
+  <!-- ========================================================= -->
+  <!-- Servers (credentials for repos if needed) -->
+  <!-- ========================================================= -->
   <servers>
+    <!--
     <server>
-      <id>petclinic-release</id>
-      <username>${jfrog_user}</username>
-      <password>${jfrog_token}</password>
+      <id>artifactory</id>
+      <username>user</username>
+      <password>password</password>
     </server>
-
-    <server>
-      <id>petclinic-snapshot</id>
-      <username>${frog_user}</username>
-      <password>${jfrog_token}</password>
-    </server>
+    -->
   </servers>
 
-  <profiles>
-    <profile>
-      <id>artifactory-deploy</id>
-      <properties>
-        <altReleaseDeploymentRepository>
-          petclinic-release::${jfrog_url}/artifactory/${release_repo}/
-        </altReleaseDeploymentRepository>
+  <!-- ========================================================= -->
+  <!-- Mirrors (optional) -->
+  <!-- ========================================================= -->
+  <mirrors>
+    <!--
+    <mirror>
+      <id>central-mirror</id>
+      <mirrorOf>central</mirrorOf>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </mirror>
+    -->
+  </mirrors>
 
-        <altSnapshotDeploymentRepository>
-          petclinic-snapshot::${jfrog_url}/artifactory/${snapshot_repo}/
-        </altSnapshotDeploymentRepository>
-      </properties>
-    </profile>
+  <!-- ========================================================= -->
+  <!-- Profiles (optional, none activated) -->
+  <!-- ========================================================= -->
+  <profiles>
   </profiles>
 
-  <activeProfiles>
-    <activeProfile>artifactory-deploy</activeProfile>
-  </activeProfiles>
 </settings>
