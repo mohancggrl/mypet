@@ -1,0 +1,123 @@
+name: Petclinic CI/CD
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+      - stage
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'Docker image tag (e.g. latest, v1.0)'
+        required: true
+        default: 'latest'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 🧱 Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+            echo "📦 Installing yq..."
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+            yq --version
+
+      - name: Load tool versions and build variables
+        run: |
+          CONFIG_FILE="vars/all.yml"
+          echo "📦 Loading variables from $CONFIG_FILE ..."
+
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "❌ File not found: $CONFIG_FILE"
+            ls -R
+            exit 1
+          fi
+
+          echo "🔍 YAML content:"
+          cat "$CONFIG_FILE"
+          echo "========================"
+
+          if ! yq eval '.' "$CONFIG_FILE" >/dev/null 2>&1; then
+            echo "❌ Invalid YAML syntax detected!"
+            exit 1
+          fi
+
+          yq eval '. as $in | to_entries | .[] | "\(.key)=\(.value)"' "$CONFIG_FILE" \
+            | grep -E '^[A-Za-z0-9_]+=' > vars.env || true
+
+          echo "✅ Processed variables:"
+          cat vars.env || true
+
+          if [ ! -s vars.env ]; then
+            echo "❌ No valid variables found — check YAML keys."
+            exit 1
+          fi
+
+          cat vars.env >> $GITHUB_ENV
+          echo "✅ Environment variables loaded successfully."
+
+      # ☕ Step 4: Set up Java dynamically
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      # 🧪 Step 6: Display versions (optional sanity check)
+      - name: Verify tool versions
+        run: |
+          echo "☕ Java version:"
+          java -version
+          echo "🔧 Maven version:"
+          mvn -v
+
+      # 🧱 Step 7: Build the application
+      - name: Build with Maven
+        run: |
+          echo "🚀 Building project for environment: $ENVIRONMENT"
+          mvn clean install -Dnohttp.check.skip=true -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -DskipTests -s ./settings.xml
+
+      # 🐳 Step 8: Docker login
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      # 🧩 Step 9: Build and push Docker image
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.PACKAGE_DIR }}
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}:${{ github.event.inputs.docker_tag }}
+
+      # 🧹 Step 10: Cleanup
+      - name: Cleanup workspace
+        run: |
+          echo "🧹 Cleaning up workspace..."
+          sudo rm -rf *
+
+      # ✅ Step 11: Success message
+      - name: Success message
+        if: ${{ success() }}
+        run: |
+          echo "✅ Successfully built and pushed image for $ENVIRONMENT"
+          echo "Image: ${{ env.DOCKER_IMAGE }}:${{ github.event.inputs.docker_tag }}"
+
+      # ❌ Step 12: Failure message
+      - name: Failure message
+        if: ${{ failure() }}
+        run: echo "❌ Build failed. Check logs for details."

@@ -1,0 +1,18 @@
+JAVA_VERSION: 21
+MAVEN_VERSION: 3.9.9
+
+# ===== BUILD SETTINGS =====
+PACKAGE_DIR: .
+BUILD_OPTS: "-DskipTests"
+
+# ===== DOCKER SETTINGS =====
+# DOCKER_IMAGE: "mohancggrl/petclinic"
+DOCKER_IMAGE: "petclinic"
+
+# ===== GENERAL =====
+LOG_LEVEL: info
+RETRY_COUNT: 3
+SONAR_HOST_URL: "http://16.146.4.236:9000"
+
+ARTIFACTORY_URL: "34.213.179.104"
+ARTIFACTORY_REPO: "images.petclinic"

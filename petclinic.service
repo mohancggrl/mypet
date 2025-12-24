@@ -1,0 +1,16 @@
+[Unit]
+Description=Spring PetClinic Application
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/spring-petclinic
+ExecStart=/usr/bin/java -jar spring-petclinic-3.5.0-SNAPSHOT.jar --spring.config.location=file:/opt/spring-petclinic/application.properties
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/petclinic.log
+StandardError=append:/var/log/petclinic.log
+
+[Install]
+WantedBy=multi-user.target

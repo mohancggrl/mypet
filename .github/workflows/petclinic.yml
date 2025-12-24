@@ -1,0 +1,67 @@
+name: Petclinic Ext CI Job 
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'Docker image tag (e.g. latest, v1.0, dev)'
+        required: true
+        default: 'latest'
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 🧱 Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ☕ Step 2: Set up JDK 17
+      - name: Set up JDK ${{ vars.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ vars.JAVA_VERSION }}
+
+      - name: Build with Maven
+        run: |
+          echo "🚀 Building project with Maven (skipping tests)..."
+          mvn clean install -DskipTests -s ./settings.xml
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.DOCKER_IMAGE }}:${{ github.event.inputs.docker_tag }}
+
+      - name: Cleanup workspace
+        run: |
+          echo "🧹 Cleaning up workspace..."
+          sudo rm -rf *
+
+      - name: Success message
+        if: ${{ success() }}
+        run: |
+          echo "✅ Build and Docker push completed successfully."
+          echo "Image: ${{ vars.DOCKER_IMAGE }}:${{ github.event.inputs.docker_tag }}"
+
+      - name: Failure message
+        if: ${{ failure() }}
+        run: echo "❌ Build failed. Check logs for details."

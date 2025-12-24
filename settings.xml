@@ -1,0 +1,38 @@
+<settings xmlns="https://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="https://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <servers>
+    <server>
+      <id>petclinic-release</id>
+      <username>${jfrog_user}</username>
+      <password>${jfrog_token}</password>
+    </server>
+
+    <server>
+      <id>petclinic-snapshot</id>
+      <username>${frog_user}</username>
+      <password>${jfrog_token}</password>
+    </server>
+  </servers>
+
+  <profiles>
+    <profile>
+      <id>artifactory-deploy</id>
+      <properties>
+        <altReleaseDeploymentRepository>
+          petclinic-release::${jfrog_url}/artifactory/${release_repo}/
+        </altReleaseDeploymentRepository>
+
+        <altSnapshotDeploymentRepository>
+          petclinic-snapshot::${jfrog_url}/artifactory/${snapshot_repo}/
+        </altSnapshotDeploymentRepository>
+      </properties>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>artifactory-deploy</activeProfile>
+  </activeProfiles>
+</settings>

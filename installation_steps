@@ -1,0 +1,27 @@
+#install git,java,maven and my sql
+yum install git java-17-openjdk-devel maven -y
+sudo dnf install https://repo.mysql.com/mysql80-community-release-el9-1.noarch.rpm -y
+sudo dnf install mysql-community-server --nogpgcheck -y
+sudo systemctl start mysqld
+sudo systemctl enable mysqld
+
+sudo grep 'temporary password' /var/log/mysqld.log    ---> to get temporary password
+sudo mysql_secure_installation
+
+PetClinic@2025
+PetClinic@2025R
+
+mysql -u root -pPetClinic@2025R
+
+CREATE DATABASE petclinic CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'petclinic'@'%' IDENTIFIED BY 'Petclinic@12345';
+
+GRANT ALL PRIVILEGES ON petclinic.* TO 'petclinic'@'%';
+
+FLUSH PRIVILEGES;
+EXIT;
+
+mvn clean package -DskipTests
+
+SELECT * FROM owners;

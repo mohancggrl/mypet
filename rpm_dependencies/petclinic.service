@@ -1,0 +1,19 @@
+[Unit]
+Description=Spring Petclinic Application
+After=network.target
+
+[Service]
+User=petclinic
+WorkingDirectory=/opt/petclinic
+
+ExecStart=/usr/bin/java -jar /opt/petclinic/petclinic.jar \
+  --spring.config.location=/etc/petclinic/application.properties
+
+Restart=always
+RestartSec=5
+
+StandardOutput=append:/var/log/petclinic/petclinic.log
+StandardError=append:/var/log/petclinic/petclinic.log
+
+[Install]
+WantedBy=multi-user.target
